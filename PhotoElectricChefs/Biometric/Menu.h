@@ -38,17 +38,10 @@ Menu/Sun Menu List Index:
 	} menu_st;
 	  
 	 
-	enum state {HOMESCREEN=0,MENUSCREEN,FPAUTH,PWDAUTH,RFIDAUTH,MENUFUNCTION,NONE};
-	enum key {POWER=0,SCROLLDOWN,SCROLLUP,ENTER,ESC,MENU,ZERO,ONE,TWO,THREE,FOUR,FIVE,SIX,SEVEN,EIGHT,NINE,NOKEY};
+
 
 
 	void initializeMenus(void);
-	void displayMenu(menu_st MenuToDisplay);
-	void drawMenu(menu_st menuToDisplay);
-	void enterMenuItem(menu_st currentMenuList);
-	void updateState(state stateToUpdateTo);
-	void escMenuList();
-	void scrollup(void);
-	void scrolldown(void);
+
 
 #endif
