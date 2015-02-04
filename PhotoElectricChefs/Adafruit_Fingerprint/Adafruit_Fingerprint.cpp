@@ -35,6 +35,18 @@ Adafruit_Fingerprint::Adafruit_Fingerprint(NewSoftSerial *ss) {
   mySerial = ss;
 }
 
+//transfer a fingerprint image to host computer
+    uint8_t Adafruit_Fingerprint::SendImage(void) {
+    uint8_t packet[] = {0x0A, 0x01};
+    writePacket(theAddress, FINGERPRINT_COMMANDPACKET, sizeof(packet)+1, packet);
+    uint8_t len = getReply(packet);
+    
+    if ((len != 1) && (packet[0] != FINGERPRINT_ACKPACKET))
+        return -1;
+    return packet[1];
+	}
+	
+
 void Adafruit_Fingerprint::begin(uint16_t baudrate) {
   delay(1000);  // one second delay to let the sensor 'boot up'
 
@@ -49,15 +61,15 @@ boolean Adafruit_Fingerprint::verifyPassword(void) {
   uint8_t len = getReply(packet);
   
   if ((len == 1) && (packet[0] == FINGERPRINT_ACKPACKET) && (packet[1] == FINGERPRINT_OK))
-    return true;
-
-
-  Serial.print("\nGot packet type "); Serial.print(packet[0]);
-  for (uint8_t i=1; i<len+1;i++) {
+    {
+	Serial.print("\nGot packet type "); Serial.println(packet[0]);
+  for (uint8_t i=1; i<len+1;i++) 
+  {
     Serial.print(" 0x");
-    Serial.print(packet[i], HEX);
+    Serial.println(packet[i], HEX);
   }
-  
+  return true;
+  }
   return false;
 }
 
@@ -95,6 +107,10 @@ uint8_t Adafruit_Fingerprint::createModel(void) {
 
 uint8_t Adafruit_Fingerprint::storeModel(uint16_t id) {
   uint8_t packet[] = {FINGERPRINT_STORE, 0x01, id >> 8, id & 0xFF};
+  for(int i=0; i<= sizeof(packet);i++)
+   {
+	  Serial.println(packet[i]);
+	  }
   writePacket(theAddress, FINGERPRINT_COMMANDPACKET, sizeof(packet)+2, packet);
   uint8_t len = getReply(packet);
   
@@ -124,8 +140,6 @@ uint8_t Adafruit_Fingerprint::getModel(void) {
         return -1;
     return packet[1];
 }
-
-
 
 uint8_t Adafruit_Fingerprint::uploadtemp(void) {
     uint8_t packet[] = {0x09, 0x01};
@@ -167,6 +181,10 @@ uint8_t Adafruit_Fingerprint::fingerFastSearch(void) {
   
   if ((len != 1) && (packet[0] != FINGERPRINT_ACKPACKET))
    return -1;
+   for(int i=0; i< 7;i++)
+   {
+	  Serial.println(packet[i]);
+	  }
 
   fingerID = packet[2];
   fingerID <<= 8;
@@ -190,10 +208,13 @@ uint8_t Adafruit_Fingerprint::getTemplateCount(void) {
    return -1;
 
   templateCount = packet[2];
+  //Serial.println(templateCount);
   templateCount <<= 8;
+  //Serial.println(templateCount);
   templateCount |= packet[3];
+  //Serial.println(templateCount);
   
-  return packet[1];
+  return templateCount;
 }
 
 
