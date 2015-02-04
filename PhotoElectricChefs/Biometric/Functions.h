@@ -80,5 +80,60 @@ Function pointers array index:
 75 -  Menu -> View Log -> View SLog
 76 -  Menu -> View Log -> Delete All Logs
 */
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
 
-  
+#include <Arduino.h>
+
+
+#define SLAVEADDRESS 2
+#define DEBUGWOWIRE 1
+
+//enum userType {ADMIN,USER};
+//enum authType {FINGERPRINT,RFID};
+void longTobyteArray(unsigned long, byte*);
+ 
+void readFromSlave();
+
+void writeToSlave();
+ 
+void deleteUser();
+
+void setTimeFunction()  ;
+
+void enroll(unsigned short, unsigned short);
+
+boolean selfTest();
+
+void factoryReset();
+
+void setAttendance();
+
+void setOpenTime();
+
+void setOpenTimeOut();
+
+void setDoorSensor();
+
+void setBellTime();
+
+void setVerifyMode();
+
+void infoUser();
+
+void infoManager();
+
+void infoFinger();
+
+void infoDuressFP();
+
+void infoPassword();
+
+void infoCard();
+
+void infoLog();
+
+void receiveSerialInputNumber();
+
+void poll();
+#endif
