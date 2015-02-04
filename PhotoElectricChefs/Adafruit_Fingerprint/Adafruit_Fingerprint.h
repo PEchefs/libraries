@@ -81,17 +81,18 @@ class Adafruit_Fingerprint {
   Adafruit_Fingerprint(NewSoftSerial *);
 #endif
   void begin(uint16_t baud);
+  uint8_t SendImage(void);
 
   boolean verifyPassword(void);
   uint8_t getImage(void);
   uint8_t image2Tz(uint8_t slot = 1);
   uint8_t createModel(void);
-  uint8_t uploadtemp(void);
 
   uint8_t emptyDatabase(void);
   uint8_t storeModel(uint16_t id);
   uint8_t loadModel(uint16_t id);
   uint8_t getModel(void);
+  uint8_t uploadtemp(void);
   uint8_t deleteModel(uint16_t id);
   uint8_t fingerFastSearch(void);
   uint8_t getTemplateCount(void);
