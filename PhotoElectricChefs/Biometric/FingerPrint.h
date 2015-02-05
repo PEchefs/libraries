@@ -6,13 +6,13 @@ External EEPROM LIBRARY FOR 512KB
 #include "Arduino.h"
 
 uint8_t fingerprint_init();
+uint8_t fingerprint_check();
 int getFingerprintIDez();
 uint8_t deleteFingerprint(uint8_t id);
 uint8_t uploadFingerpintTemplate(uint8_t id);
 uint8_t uploadtemp(uint8_t id);
 void showtemplate(uint8_t id);
 void image();
-void deletetemp(uint8_t id);
 void tempnumber();
 uint8_t getFingerprintID() ;
 uint8_t getFingerprintEnroll1();

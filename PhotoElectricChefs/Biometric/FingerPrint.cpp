@@ -9,7 +9,10 @@ uint8_t fingerprintdata[79];
 uint8_t fingerprint_init()
 {
 	finger.begin(57600);
-	  
+	 
+ }
+uint8_t fingerprint_check()
+{
 	  if (finger.verifyPassword())
 	  {
 		Serial.println("Found fingerprint sensor!");
@@ -20,7 +23,7 @@ uint8_t fingerprint_init()
 		Serial.println("Did not find fingerprint sensor :(");
 		return 0;
 	  }
- }
+}
 uint8_t uploadtemp(uint8_t id)
 {
   Serial.println("Type in the ID # you want to upload the template...");
@@ -221,14 +224,6 @@ uint8_t uploadFingerpintTemplate(uint8_t id)
      Serial.println();
 	}
   }
-
-void deletetemp(uint8_t id)
-{
-  Serial.print("deleting ID #");
-  Serial.println(id);
-  
-  deleteFingerprint(id);
-}
  uint8_t deleteFingerprint(uint8_t id) {
   uint8_t p = -1;
   
@@ -300,16 +295,15 @@ uint8_t getFingerprintEnroll1() {
   }
   
   Serial.println("Remove finger");
-  delay(2000);
+  while (p != FINGERPRINT_NOFINGER) {
+    p = finger.getImage();
+  }
+  delay(1000);
   return 1;
 }
 uint8_t getFingerprintEnroll2() {
   uint8_t p = -1;
-  while (p != FINGERPRINT_NOFINGER) {
-    p = finger.getImage();
-  }
 
-  p = -1;
   Serial.println("Place same finger again");
   while (p != FINGERPRINT_OK) {
     p = finger.getImage();
