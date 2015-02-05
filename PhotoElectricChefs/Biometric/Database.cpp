@@ -126,3 +126,50 @@ int database_getemployeecount()
 	}
 	return user_count;
 }
+int database_setlog(byte *temp)
+{
+	int i=0;
+	byte temp2[LOG_DATA_LENGTH];
+	int log_start_addr=LOG_DATA_START_ADDR;
+	for(i=0;i<LOG_DATA_LENGTH;i++)
+	{
+		logStats.data[i]=temp[i];
+	}
+	log_start_addr=LOG_DATA_START_ADDR+((logStats.log.logSlNo-1)*LOG_DATA_LENGTH);
+	for(i=0;i<LOG_DATA_LENGTH;i++)
+	{
+		i2c_eeprom_write_byte(log_start_addr+i,temp[i]);
+		delay(50);
+	}
+	database_getlog(logStats.log.logSlNo,temp2);
+	for(i=0;i<LOG_DATA_LENGTH;i++)
+	{
+		if(temp[i]!=temp2[i])
+			return 0;
+	}
+	return 1;
+	
+}
+int database_getlog(int slNo,byte *log_data)
+{
+	int log_start_addr=LOG_DATA_START_ADDR+((slNo-1)*LOG_DATA_LENGTH);
+	for(int i=0;i<LOG_DATA_LENGTH;i++)
+	{
+		log_data[i]=i2c_eeprom_read_byte(log_start_addr+i);
+		delay(50);
+	}
+}
+int database_getlogcount()
+{
+	int log_start_addr=LOG_DATA_START_ADDR;
+	int log_count=0;
+	for(int i=0;i<1000;i++)
+	{
+		if(i2c_eeprom_read_byte(log_start_addr+(i*LOG_DATA_LENGTH))>0)
+			log_count++;
+		else
+			break;
+		delay(50);
+	}
+	return log_count;
+}

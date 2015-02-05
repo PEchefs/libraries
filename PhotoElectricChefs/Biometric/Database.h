@@ -18,4 +18,7 @@ void database_getstats();
 int database_setemployee(byte[]);
 int database_getemployee(int,byte[]);
 int database_getemployeecount();
+int database_setlog(byte);
+int database_getlog(int,byte[]);
+int database_getlogcount();
 #endif
