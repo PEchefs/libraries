@@ -87,7 +87,7 @@ Function pointers array index:
 
 
 #define SLAVEADDRESS 2
-#define DEBUGWOWIRE 1
+
 
 //enum userType {ADMIN,USER};
 //enum authType {FINGERPRINT,RFID};

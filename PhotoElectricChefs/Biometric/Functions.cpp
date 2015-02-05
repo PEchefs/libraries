@@ -28,16 +28,20 @@ Function pointers array index:
 22 -  Menu -> Settings -> Information -> Log
 
 Command To Slave:
-0x30 0x31 - Enroll Fingerprint
-0x30 0x32 - Enroll RFID
-0x30 0x33 - Delete Fingerprint
-0x30 0x34 - Delete RFID
-0x30 0x35 - Open Door
-0x30 0x36 - Close Door
-0x30 0x37 - Trigger Buzzer
-0x30 0x38 - Poll
-0x30 0x39
-0x30 0x3A
+0x30 0x31 - Check Fingerprint
+0x30 0x32 - Enroll Fingerprint1
+0x30 0x33 - Enroll Fingerprint2
+0x30 0x34 - STORE Fingerprint
+
+0x31 0x32 - Enroll RFID
+0x30 0x35 - Delete Fingerprint
+0x31 0x34 - Delete RFID
+0x32 0x35 - Open Door
+0x32 0x36 - Close Door
+0x32 0x37 - Trigger Buzzer
+0x32 0x38 - Poll
+0x32 0x39
+0x32 0x3A
 
 Response Codes:
 0x40 0x40 - Success - for enroll, delete
@@ -59,6 +63,7 @@ Response Codes:
 #include <Wire.h>
 #define DEBUG 1
 #define DEBUG1 1
+#define DEBUGWOWIRE 0
 
 unsigned long serialInputNumber;
 boolean  serialInputNumberReceived=false;
@@ -78,14 +83,10 @@ union
 {
 	struct 
 	{
-		//const byte header[2]={100,100}; // Hex: 2710
 		const byte header[2]={100,100}; // Hex: 2710
-		//byte command[2]={0,0};
 		byte command[2]; 	
-		//byte data[12]={0,0,0,0,0,0,0,0,0,0,0,0};
 		byte data[12];
 	};
-	//byte commandToSlave[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	byte commandToSlave[16];
 } commandToSlaveUnion;			
 
@@ -94,12 +95,10 @@ union
 	struct 
 	{
 		//const byte header[2]={100,100}; // Hex: 2710
-		const byte header[2]={100,100}; // Hex: 2710
+		byte header[2]; // Hex: 2710
 		byte responseCode[2];
-		//byte data[12]={0,0,0,0,0,0,0,0,0,0,0,0};
 		byte data[12];
 	};
-	//byte commandToSlave[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	byte responseFromSlave[16];
 } responseFromSlaveUnion;		
 
@@ -107,31 +106,66 @@ void readFromSlave()
 {
   if(!DEBUGWOWIRE)
   {
-  Wire.requestFrom(SLAVEADDRESS, 10);    // request 6 bytes from slave device #2
+	if(DEBUG)
+		Serial.println("Requesting info from Slave");
+  Wire.requestFrom(SLAVEADDRESS, 16);    // request 16 bytes from slave device #2
+ // if(DEBUG)
+//	Serial.println("Request for 16 bytes sent to Slave");
   //Serial.println("Received Data:");
+  unsigned short i=0;
+  unsigned long time1=millis();
+  unsigned long time2=0;
+  while(Wire.available()!=16)
+  {
+  if(DEBUG)
+		{
+			Serial.print("Response bytes: ");Serial.println(Wire.available());
+		}
+	if(DEBUG)
+		Serial.println("Waiting for response from slave");
+		delay(1000);
+	time2=millis();
+	if(time2-time1>10000)
+		{
+			if(DEBUG)
+				Serial.println("Time Out on wire receive");
+				break;
+				//return 0;
+		}
+  }
+  Serial.println("Received:");
   while (Wire.available())   // slave may send less than requested
   {
-    char c = Wire.read(); // receive a byte as character
-    Serial.print(c);         // print the character
+	
+	responseFromSlaveUnion.responseFromSlave[i]=Wire.read();
+	Serial.print(responseFromSlaveUnion.responseFromSlave[i]);
+ //   char c = Wire.read(); // receive a byte as character
+ //   Serial.print(c);         // print the character
+	i++;
   }
-  
+  if(i==0)
+	if(DEBUG)
+		Serial.println("Failed Enroll! No response received");
+	//TODO : Add LCD call to display failure
+  else if (i!=16)
+	if(DEBUG)
+		Serial.println("Failed Enroll! 16 bytes not received");
+	//TODO : Add LCD call to display failure
   delay(500);
   }
 }
 
+
 void writeToSlave()
 {
-  //Serial.println("Sending command to Slave:");
+	if(DEBUG)
+		Serial.println("Sending command to Slave");
   if(!DEBUGWOWIRE)
   {
-    Wire.beginTransmission(SLAVEADDRESS); // transmit to device #4
-
-  for(unsigned short i=0;i<16;i++)
-  {
-    Serial.print(commandToSlaveUnion.commandToSlave[i]);
-    Wire.write(commandToSlaveUnion.commandToSlave[i]);        // sends five bytes
-  }
-  
+    Wire.beginTransmission(SLAVEADDRESS); // transmit to device SLAVEADDRESS
+	Serial.write(commandToSlaveUnion.commandToSlave,16);
+    Wire.write(commandToSlaveUnion.commandToSlave,16);        // sends 16 bytes
+	Wire.endTransmission();    // stop transmitting
   delay(500);
   }
 }
@@ -146,7 +180,7 @@ void setTimeFunction()
   
 }
 
-void enroll(unsigned short userType, unsigned short authtType)
+void enroll(unsigned short userType, unsigned short authType)
 {
 	serialInputNumberReceived=false;
 // UserType: USER: 0, ADMIN: 1
@@ -154,7 +188,11 @@ void enroll(unsigned short userType, unsigned short authtType)
 	Serial.println("Enter ID");
 	while (!serialInputNumberReceived)
 	{
-		Serial.println("Waiting for serial input number");
+		if(DEBUG)
+			{
+				Serial.println("Waiting for serial input number");
+				delay(1000);
+			}
 		receiveSerialInputNumber();
 	}
 /*	if(authType=0)
@@ -162,22 +200,69 @@ void enroll(unsigned short userType, unsigned short authtType)
 	else if(authType=1)
 		RFID=serialInputNumber;
 */
-	Serial.print("ID received:");
-	Serial.println(serialInputNumber,DEC);
+	if(DEBUG)
+	{
+		Serial.print("ID received:");
+		Serial.println(serialInputNumber,DEC);
+	}
 	// Set command parameters for enroll in I2C communication union.
 	// Call I2C function to instruct the other controller to enroll
-	commandToSlaveUnion.command[0]=0x30;
-	commandToSlaveUnion.command[1]=0x31;
-	longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
-	//sendToSlave()
-	writeToSlave();
+	//0x30 0x31 - Check Fingerprint
+	//0x30 0x32 - Enroll Fingerprint1
+	//0x30 0x33 - Enroll Fingerprint2
+	//0x30 0x34 - STORE Fingerprint
+
+	//0x31 0x32 - Enroll RFID
+	
+	if(authType==0)
+		{
+			if(DEBUG)
+				Serial.println("Auth Type = Fingerprint");
+		// Enroll Fingerprint
+		commandToSlaveUnion.command[0]=0x30;
+		commandToSlaveUnion.command[1]=0x31;
+		for(unsigned short i=0;i<16;i++)
+			commandToSlaveUnion.data[i]=0;
+		longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
+		writeToSlave();
+		readFromSlave();
+		commandToSlaveUnion.command[0]=0x30;
+		commandToSlaveUnion.command[1]=0x32;
+		for(unsigned short i=0;i<16;i++)
+		commandToSlaveUnion.data[i]=0;
+		writeToSlave();
+		readFromSlave();
+		commandToSlaveUnion.command[0]=0x30;
+		commandToSlaveUnion.command[1]=0x33;
+		for(unsigned short i=0;i<16;i++)
+		commandToSlaveUnion.data[i]=0;
+		writeToSlave();
+		readFromSlave();
+		commandToSlaveUnion.command[0]=0x30;
+		commandToSlaveUnion.command[1]=0x34;
+		for(unsigned short i=0;i<16;i++)
+		commandToSlaveUnion.data[i]=0;
+		writeToSlave();
+		readFromSlave();
+		}
+		
+	else if(authType==1)
+		{
+		// Enroll RFID
+		commandToSlaveUnion.command[1]=0x32;
+		longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
+		writeToSlave();
+		readFromSlave();
+		}
+	
 	if(DEBUG1)
 		enrollComplete=true;
 	while(!enrollComplete)
 	{
 		// wait for enroll to complete from the other controller 
 	}
-	Serial.println("Enroll Complete");
+	if(DEBUG)
+		Serial.println("Enroll Complete");
 }
 
 boolean selfTest()
@@ -257,15 +342,15 @@ void infoLog()
 
 void receiveSerialInputNumber()
 {
-	if(DEBUG)
-		Serial.println("receiveSerialInputNumber function called");
+//	if(DEBUG)
+//		Serial.println("receiveSerialInputNumber function called");
     serialInputNumberReceived=false;
     unsigned short count=0;
     char inchar[10]="";
     while (Serial.available()>0) 
     {
-        if(DEBUG)
-          Serial.println("Serial Input Number received");
+ //       if(DEBUG)
+ //         Serial.println("Serial Input Number received");
         inchar[count]=char(Serial.read());
         count++;  
 		serialInputNumberReceived=true;		
