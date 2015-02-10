@@ -1,5 +1,28 @@
  #include "Ext_EEPROM.h" //I2C library
  #include "Database.h";
+ /***************************USAGE*******************/
+ /*
+	union eepromStats - Used to get and store user count and log count and also if the eeprom is formatted.
+					  - Call database_isFormatted() to get the format status
+					  //TODO set usercount and logcount into the memory!
+	union employeeStats - Used to get the employee data into a structure within.
+	struct employeeStruct - SlNo - 2 bytes
+						  - employeeId - 12 bytes;
+						  - employeeRfid -12 bytes;
+						  - employeeName - 20 bytes;
+						  - employeeFingerprintID - 2 bytes
+						  - employeeEntryType - 1 byte - denotes if only Fingerprint or with card and if admin or not
+						  - employeeInTime - 4 bytes unixtime referring to allowance for entry (start)
+						  - employeeOutTime - 4 bytes unixtime referring to allowance for entry (end)
+						  - employeeMode - 1 byte referring to whether the above time is taken for consideration
+						  - reserved - 2 bytes reserved for future use
+	union logStats - Used to get log data into a structure within
+	struct logStats - SlNo -2 bytes
+					- employeeId - 12 bytes
+					- employeeMode - 1 bytes denotes if only Fingerprint or with card and if admin or not
+					- LogTime - 4 bytes unixtime referring to log entry time
+ */
+ /*****************************************************/
  union
 	{    
 	   struct eepromStruct
@@ -24,7 +47,7 @@ union
 		long empInTime;
 		long empOutTime;
 		char empMode;
-		char reserver[2];
+		char reserved[2];
 	   }employee;
 	    byte data[USER_DATA_LENGTH];
 	} employeeStats;
@@ -111,6 +134,59 @@ int database_getemployee(int slNo,byte *emp_data)
 		emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
 		delay(50);
 	}
+}
+int database_getemployee_byfid(int fid,byte *emp_data)
+{
+	for(int j=0;j<1000;j++)
+	{
+		int employee_start_addr=USER_DATA_START_ADDR+(j*USER_DATA_LENGTH);
+		int temp_fid=i2c_eeprom_read_byte(employee_start_addr+45);
+		delay(10);
+		if(temp_fid==fid)
+		{
+			for(int i=0;i<USER_DATA_LENGTH;i++)
+			{
+				emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
+				delay(10);
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
+int database_getemployee_byrfid(char rfid[12],byte *emp_data)
+{
+	char found=0;
+	for(int j=0;j<1000;j++)
+	{
+		int employee_start_addr=USER_DATA_START_ADDR+(j*USER_DATA_LENGTH);
+		char temp_rfid[12];
+		for(int i=13;i<25;i++)
+		{
+			temp_rfid[i-13]=i2c_eeprom_read_byte(employee_start_addr+i);
+			delay(10);
+		}
+		for(int i=0;i<12;i++)
+		{
+			if(temp_rfid[i]!=rfid[i])
+			{
+				found=0;
+				break;
+			}
+			else
+				found=1;
+		}
+		if(found==1)
+		{
+			for(int i=0;i<USER_DATA_LENGTH;i++)
+			{
+				emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
+				delay(10);
+			}
+			return 1;
+		}
+	}
+	return 0;
 }
 int database_getemployeecount()
 {
