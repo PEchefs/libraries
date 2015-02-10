@@ -1,8 +1,41 @@
 #include "Menu.h"
+#include "Ext_EEPROM.h" //I2C library
 #include <gLCD_u8glib.h>
-menu_st Menu[7];
 
-void initializeMenus(void)
+menu_un Menu;
+int getMenu(int id)
+{
+	int menu_start_addr=MENU_DATA_START_ADDR+(id*MENU_DATA_LENGTH);
+	for(int i=0;i<MENU_DATA_LENGTH;i++)
+	{
+		Menu.data[i]=i2c_eeprom_read_byte(menu_start_addr+i);
+		delay(30);
+	}
+}
+int setMenu(int id)
+{
+	int i=0;
+	menu_un Menu_temp;
+	int menu_start_addr=MENU_DATA_START_ADDR;
+	for(i=0;i<MENU_DATA_LENGTH;i++)
+	{
+		Menu_temp.data[i]=Menu.data[i];
+	}
+	menu_start_addr=MENU_DATA_START_ADDR+(id*MENU_DATA_LENGTH);
+	for(i=0;i<MENU_DATA_LENGTH;i++)
+	{
+		i2c_eeprom_write_byte(menu_start_addr+i,Menu_temp.data[i]);
+		delay(50);
+	}
+	getMenu(id);
+	for(i=0;i<MENU_DATA_LENGTH;i++)
+	{
+		if(Menu_temp.data[i]!=Menu.data[i])
+			return 0;
+	}
+	return 1;
+}
+/*void initializeMenus(void)
 {
   Menu[0].numOfMenuListItems=4;
   Menu[0].heading="MENU";
@@ -114,6 +147,6 @@ void initializeMenus(void)
   Menu[6].functionPointerIndex[4]=20;                               
   Menu[6].functionPointerIndex[5]=21;  
   Menu[6].functionPointerIndex[6]=22; 
-}
+}*/
 
 
