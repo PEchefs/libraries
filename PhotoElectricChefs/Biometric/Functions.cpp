@@ -50,7 +50,7 @@ Response Codes:
 0x40 0x43 - Failed, User Does not exist
 0x40 0x44 - Fingerprint match - for Poll
 0x40 0x45 - RFID flashed - for Poll
-0x40 0x46 - 
+0x40 0x46 - Wait, Under processing
 0x40 0x47
 0x40 0x48
 0x40 0x49
@@ -71,6 +71,7 @@ boolean enrollComplete=false;
 
 
 
+
 void longTobyteArray(unsigned long longToConvert, byte* byteArray)
 {
 	byteArray[0] = (int)((longToConvert >> 24) & 0xFF) ;
@@ -83,7 +84,8 @@ union
 {
 	struct 
 	{
-		const byte header[2]={100,100}; // Hex: 2710
+		//const byte header[2]={100,100}; // Hex: 2710
+		byte header[2]; // Hex: 2710
 		byte command[2]; 	
 		byte data[12];
 	};
@@ -102,13 +104,18 @@ union
 	byte responseFromSlave[16];
 } responseFromSlaveUnion;		
 
-void readFromSlave()
+unsigned short readFromSlave()
 {
   if(!DEBUGWOWIRE)
   {
 	if(DEBUG)
 		Serial.println("Requesting info from Slave");
-  Wire.requestFrom(SLAVEADDRESS, 16);    // request 16 bytes from slave device #2
+    unsigned short j=0;
+	boolean validResponseReceived=false;
+  do
+  {
+	j++;
+	Wire.requestFrom(SLAVEADDRESS, 16);    // request 16 bytes from slave device #2
  // if(DEBUG)
 //	Serial.println("Request for 16 bytes sent to Slave");
   //Serial.println("Received Data:");
@@ -129,29 +136,42 @@ void readFromSlave()
 		{
 			if(DEBUG)
 				Serial.println("Time Out on wire receive");
-				break;
-				//return 0;
+			//	break;
+			return 0;
 		}
   }
   Serial.println("Received:");
-  while (Wire.available())   // slave may send less than requested
-  {
+  delay(10);
+
 	
-	responseFromSlaveUnion.responseFromSlave[i]=Wire.read();
-	Serial.print(responseFromSlaveUnion.responseFromSlave[i]);
- //   char c = Wire.read(); // receive a byte as character
- //   Serial.print(c);         // print the character
-	i++;
-  }
-  if(i==0)
-	if(DEBUG)
-		Serial.println("Failed Enroll! No response received");
-	//TODO : Add LCD call to display failure
-  else if (i!=16)
-	if(DEBUG)
-		Serial.println("Failed Enroll! 16 bytes not received");
-	//TODO : Add LCD call to display failure
-  delay(500);
+
+	while (Wire.available())   // slave may send less than requested
+	{
+		
+		responseFromSlaveUnion.responseFromSlave[i]=Wire.read();
+		Serial.print(responseFromSlaveUnion.responseFromSlave[i]);
+ 	//   char c = Wire.read(); // receive a byte as character
+ 	//   Serial.print(c);         // print the character
+		i++;
+	}
+	if(responseFromSlaveUnion.responseCode[0]==0x40 && responseFromSlaveUnion.responseCode[1]!=0x46)
+			validResponseReceived=true;
+/*	if(i==0)
+		if(DEBUG)
+			Serial.println("Failed Enroll! No response received");
+		//TODO : Add LCD call to display failure
+	else if (i!=16)
+		if(DEBUG)
+			Serial.println("Failed Enroll! 16 bytes not received");
+		//TODO : Add LCD call to display failure
+		*/
+	delay(500);
+	}
+  while((j<20) && !validResponseReceived);
+  if(!validResponseReceived)
+	return -1;
+	
+  return 1;
   }
 }
 
@@ -162,6 +182,8 @@ void writeToSlave()
 		Serial.println("Sending command to Slave");
   if(!DEBUGWOWIRE)
   {
+	commandToSlaveUnion.header[0]=100;
+	commandToSlaveUnion.header[1]=100;
     Wire.beginTransmission(SLAVEADDRESS); // transmit to device SLAVEADDRESS
 	Serial.write(commandToSlaveUnion.commandToSlave,16);
     Wire.write(commandToSlaveUnion.commandToSlave,16);        // sends 16 bytes
@@ -180,7 +202,7 @@ void setTimeFunction()
   
 }
 
-void enroll(unsigned short userType, unsigned short authType)
+unsigned short enroll(unsigned short userType, unsigned short authType)
 {
 	serialInputNumberReceived=false;
 // UserType: USER: 0, ADMIN: 1
@@ -216,34 +238,91 @@ void enroll(unsigned short userType, unsigned short authType)
 	
 	if(authType==0)
 		{
+		unsigned short retCode=0;
+		
+
+
+
 			if(DEBUG)
 				Serial.println("Auth Type = Fingerprint");
-		// Enroll Fingerprint
+		// 0x30 0x31 - Check Fingerprint
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x31;
 		for(unsigned short i=0;i<16;i++)
 			commandToSlaveUnion.data[i]=0;
 		longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
 		writeToSlave();
-		readFromSlave();
+		delay(100);
+		retCode=readFromSlave();
+		if(retCode==-1)
+			//No valid response - No fingerprint found
+			{
+			displayMessage(0);
+			return -1;
+			}
+		else if(retCode==0)
+			// Timeout - No fingerprint found
+			{
+			displayMessage(1);
+			return -1;
+			}
+		//0x30 0x32 - Enroll Fingerprint1
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x32;
 		for(unsigned short i=0;i<16;i++)
-		commandToSlaveUnion.data[i]=0;
+			commandToSlaveUnion.data[i]=0;
 		writeToSlave();
 		readFromSlave();
+		if(retCode==-1)
+			//No valid response - Finger not pressed
+			{
+			displayMessage(2);
+			return -1;
+			}
+		else if(retCode==0)
+			// Timeout - Finger not pressed
+			{
+			displayMessage(3);
+			return -1;
+			}
+		//0x30 0x33 - Enroll Fingerprint2
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x33;
 		for(unsigned short i=0;i<16;i++)
-		commandToSlaveUnion.data[i]=0;
+			commandToSlaveUnion.data[i]=0;
 		writeToSlave();
 		readFromSlave();
+		if(retCode==-1)
+			//No valid response - Fingerprints do not match
+			{
+			displayMessage(4);
+			return -1;
+			}
+		else if(retCode==0)
+			// Timeout - Finger not pressed
+			{
+			displayMessage(5);
+			return -1;
+			}
+		//0x30 0x34 - STORE Fingerprint
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x34;
 		for(unsigned short i=0;i<16;i++)
-		commandToSlaveUnion.data[i]=0;
+			commandToSlaveUnion.data[i]=0;
 		writeToSlave();
 		readFromSlave();
+		if(retCode==-1)
+			//No valid response - Enroll Failed. 
+			{
+			displayMessage(6);
+			return -1;
+			}
+		else if(retCode==0)
+			// Timeout - Could not enroll!. Unknown error.
+			{
+			displayMessage(7);
+			return -1;		
+			}
 		}
 		
 	else if(authType==1)
@@ -368,6 +447,7 @@ void poll()
 		commandToSlaveUnion.data[i]=0;
 	}
 	writeToSlave();	
+	readFromSlave();
 }
 
 

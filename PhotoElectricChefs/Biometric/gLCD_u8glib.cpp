@@ -178,6 +178,12 @@ void displayMenu(menu_st MenuToDisplay)
 
 }
 
+void displayMessage(unsigned short messageIndex)
+{
+	
+	
+}
+
 
 void scrolldown()
 {

@@ -84,6 +84,7 @@ Function pointers array index:
 #define FUNCTIONS_H
 
 #include <Arduino.h>
+#include <gLCD_u8glib.h>
 
 
 #define SLAVEADDRESS 2
@@ -93,7 +94,7 @@ Function pointers array index:
 //enum authType {FINGERPRINT,RFID};
 void longTobyteArray(unsigned long, byte*);
  
-void readFromSlave();
+unsigned short readFromSlave();
 
 void writeToSlave();
  
@@ -101,7 +102,7 @@ void deleteUser();
 
 void setTimeFunction()  ;
 
-void enroll(unsigned short, unsigned short);
+unsigned short enroll(unsigned short, unsigned short);
 
 boolean selfTest();
 

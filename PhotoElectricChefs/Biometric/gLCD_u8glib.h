@@ -18,6 +18,7 @@
 	void escMenuList();
 	void scrollup(void);
 	void scrolldown(void);
+	void displayMessage(unsigned short);
 	
 #endif
 
