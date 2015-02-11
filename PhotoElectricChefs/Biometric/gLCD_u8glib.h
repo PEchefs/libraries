@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include <U8glib.h>
 #include <Menu.h>
+#include <Time.h>
 
 
 #define MAX_NUM_DISPLAY_LINES 4
@@ -18,7 +19,9 @@
 	void escMenuList();
 	void scrollup(void);
 	void scrolldown(void);
-	void displayMessage(unsigned short);
+	void displayMessage(char*);
+	void displayMessage2(char*,char*);
+	void displayHomeScreen(tmElements_t);
 	
 #endif
 

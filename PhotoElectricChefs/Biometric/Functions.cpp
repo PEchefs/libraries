@@ -207,6 +207,7 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 	serialInputNumberReceived=false;
 // UserType: USER: 0, ADMIN: 1
 // AuthType to Enroll: FingerPrint: 0, Password: 1, Card: 2
+	displayMessage("Enter ID..");
 	Serial.println("Enter ID");
 	while (!serialInputNumberReceived)
 	{
@@ -238,6 +239,8 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 	
 	if(authType==0)
 		{
+		
+		displayMessage("Please Wait...");
 		unsigned short retCode=0;
 		
 
@@ -257,16 +260,17 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		if(retCode==-1)
 			//No valid response - No fingerprint found
 			{
-			displayMessage(0);
+			//displayMessage(0);
 			return -1;
 			}
 		else if(retCode==0)
 			// Timeout - No fingerprint found
 			{
-			displayMessage(1);
+			////displayMessage(1);
 			return -1;
 			}
 		//0x30 0x32 - Enroll Fingerprint1
+		displayMessage("Press Finger!");
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x32;
 		for(unsigned short i=0;i<16;i++)
@@ -276,16 +280,17 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		if(retCode==-1)
 			//No valid response - Finger not pressed
 			{
-			displayMessage(2);
+			////displayMessage(2);
 			return -1;
 			}
 		else if(retCode==0)
 			// Timeout - Finger not pressed
 			{
-			displayMessage(3);
+			////displayMessage(3);
 			return -1;
 			}
 		//0x30 0x33 - Enroll Fingerprint2
+		displayMessage2("Press Finger","Again!");
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x33;
 		for(unsigned short i=0;i<16;i++)
@@ -295,16 +300,17 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		if(retCode==-1)
 			//No valid response - Fingerprints do not match
 			{
-			displayMessage(4);
+			////displayMessage(4);
 			return -1;
 			}
 		else if(retCode==0)
 			// Timeout - Finger not pressed
 			{
-			displayMessage(5);
+			////displayMessage(5);
 			return -1;
 			}
 		//0x30 0x34 - STORE Fingerprint
+		displayMessage("Enrolling...");
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x34;
 		for(unsigned short i=0;i<16;i++)
@@ -314,13 +320,13 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		if(retCode==-1)
 			//No valid response - Enroll Failed. 
 			{
-			displayMessage(6);
+			//////displayMessage(6);
 			return -1;
 			}
 		else if(retCode==0)
 			// Timeout - Could not enroll!. Unknown error.
 			{
-			displayMessage(7);
+			////displayMessage(7);
 			return -1;		
 			}
 		}
@@ -340,8 +346,11 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 	{
 		// wait for enroll to complete from the other controller 
 	}
+	displayMessage("Enroll Successful!");
+	
 	if(DEBUG)
 		Serial.println("Enroll Complete");
+	delay(3000);
 }
 
 boolean selfTest()
