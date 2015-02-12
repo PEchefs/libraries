@@ -336,7 +336,7 @@ void displayHomeScreen(tmElements_t currentTimeReceived)
 	u8g_uint_t w, d;
 
 	//  u8g.setFont(u8g_font_7x13B);
-	u8g.setFont(u8g_font_courB24);
+	u8g.setFont(u8g_font_freedoomr25n);
 	u8g.setFontRefHeightText();
 	u8g.setFontPosTop();
 	h = u8g.getFontAscent()-u8g.getFontDescent();
@@ -346,7 +346,7 @@ void displayHomeScreen(tmElements_t currentTimeReceived)
 	mid1 = (w-u8g.getStrWidth(timeLine1))/2;
 	//mid2 = (w-u8g.getStrWidth(timeLine2))/2;
 	mid2=15;
-/*	if(DEBUG)
+	/*if(DEBUG)
 		{
 			Serial.println(timeLine1);
 			Serial.println(timeLine2);
@@ -356,13 +356,13 @@ void displayHomeScreen(tmElements_t currentTimeReceived)
 		do {
          // if(DEBUG)
            //  Serial.println("Sending MenuToDisplay");
-		u8g.setFont(u8g_font_courB24);  
+		u8g.setFont(u8g_font_freedoomr25n);  
 //		u8g.setFont(u8g_font_7x14);  
 		u8g.setFontRefHeightText();
 		h = u8g.getFontAscent()-u8g.getFontDescent();
 		w = u8g.getWidth();
 		//u8g.drawStr(mid1, 4*h+1, timeLine1);
-		u8g.drawStr(mid1, 1*h+1, timeLine1);
+		u8g.drawStr(mid1, 1.5*h+1, timeLine1);
 		u8g.setFont(u8g_font_7x14);
 		u8g.setFontRefHeightText();
 		h = u8g.getFontAscent()-u8g.getFontDescent();
