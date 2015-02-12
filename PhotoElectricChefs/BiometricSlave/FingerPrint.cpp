@@ -133,8 +133,8 @@ int getFingerprintIDez() {
   if (p != FINGERPRINT_OK)  return -1;
 
   p = finger.fingerFastSearch();
-  if (p != FINGERPRINT_OK)  return -1;
-  
+ // if (p != FINGERPRINT_OK)  return -1;
+  if (p == FINGERPRINT_NOTFOUND)  return 2;
   // found a match!
   Serial.print("Found ID #"); Serial.print(finger.fingerID); 
   Serial.print(" with confidence of "); Serial.println(finger.confidence);

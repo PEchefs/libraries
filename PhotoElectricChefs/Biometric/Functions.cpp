@@ -49,10 +49,10 @@ Response Codes:
 0x40 0x42 - Failed, User RFID exists
 0x40 0x43 - Failed, User Does not exist
 0x40 0x44 - Fingerprint match - for Poll
-0x40 0x45 - RFID flashed - for Poll
+0x40 0x45 - Fingerprint detected, No match found - Poll
 0x40 0x46 - Wait, Under processing
-0x40 0x47
-0x40 0x48
+0x40 0x47 - RFID flashed - for Poll
+0x40 0x48 - No FP or RFID detected
 0x40 0x49
 
 
@@ -61,7 +61,7 @@ Response Codes:
 #include <Arduino.h>
 #include <Functions.h>
 #include <Wire.h>
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUG1 1
 #define DEBUGWOWIRE 0
 
@@ -72,12 +72,18 @@ boolean enrollComplete=false;
 
 
 
-void longTobyteArray(unsigned long longToConvert, byte* byteArray)
+void longTobyteArray(unsigned long longToConvert, byte *byteArray)
 {
-	byteArray[0] = (int)((longToConvert >> 24) & 0xFF) ;
-	byteArray[1] = (int)((longToConvert >> 16) & 0xFF) ;
-	byteArray[2] = (int)((longToConvert >> 8) & 0XFF);
-	byteArray[3] = (int)((longToConvert & 0XFF));
+	//Serial.print("Long to convert:");Serial.println(longToConvert,DEC);
+	byteArray[3] = (int)((longToConvert >> 24) & 0xFF) ;
+	byteArray[2] = (int)((longToConvert >> 16) & 0xFF) ;
+	byteArray[1] = (int)((longToConvert >> 8) & 0XFF);
+	byteArray[0] = (int)((longToConvert & 0XFF));
+	//Serial.print("byteArray[0]=");Serial.println(byteArray[0],DEC);
+	//Serial.print("byteArray[1]=");Serial.println(byteArray[1],DEC);
+	//Serial.print("byteArray[2]=");Serial.println(byteArray[2],DEC);
+	//Serial.print("byteArray[3]=");Serial.println(byteArray[3],DEC);
+	//Serial.print("ID converted(in loop): ");Serial.write(byteArray,12);Serial.println("");
 }
 
 union 
@@ -130,7 +136,7 @@ unsigned short readFromSlave()
 		}
 	if(DEBUG)
 		Serial.println("Waiting for response from slave");
-		delay(1000);
+		delay(100);
 	time2=millis();
 	if(time2-time1>10000)
 		{
@@ -140,7 +146,7 @@ unsigned short readFromSlave()
 			return 0;
 		}
   }
-  Serial.println("Received:");
+  //Serial.println("Received:");
   delay(10);
 
 	
@@ -149,7 +155,7 @@ unsigned short readFromSlave()
 	{
 		
 		responseFromSlaveUnion.responseFromSlave[i]=Wire.read();
-		Serial.print(responseFromSlaveUnion.responseFromSlave[i]);
+//		Serial.print(responseFromSlaveUnion.responseFromSlave[i]);
  	//   char c = Wire.read(); // receive a byte as character
  	//   Serial.print(c);         // print the character
 		i++;
@@ -165,7 +171,7 @@ unsigned short readFromSlave()
 			Serial.println("Failed Enroll! 16 bytes not received");
 		//TODO : Add LCD call to display failure
 		*/
-	delay(500);
+	delay(100);
 	}
   while((j<20) && !validResponseReceived);
   if(!validResponseReceived)
@@ -185,7 +191,7 @@ void writeToSlave()
 	commandToSlaveUnion.header[0]=100;
 	commandToSlaveUnion.header[1]=100;
     Wire.beginTransmission(SLAVEADDRESS); // transmit to device SLAVEADDRESS
-	Serial.write(commandToSlaveUnion.commandToSlave,16);
+//	Serial.write(commandToSlaveUnion.commandToSlave,16);
     Wire.write(commandToSlaveUnion.commandToSlave,16);        // sends 16 bytes
 	Wire.endTransmission();    // stop transmitting
   delay(500);
@@ -228,6 +234,7 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		Serial.print("ID received:");
 		Serial.println(serialInputNumber,DEC);
 	}
+	
 	// Set command parameters for enroll in I2C communication union.
 	// Call I2C function to instruct the other controller to enroll
 	//0x30 0x31 - Check Fingerprint
@@ -236,10 +243,18 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 	//0x30 0x34 - STORE Fingerprint
 
 	//0x31 0x32 - Enroll RFID
-	
+	/*if(DEBUG)
+	{
+		Serial.print("ID received (just before authType condition:");
+		Serial.println(serialInputNumber,DEC);
+	}*/
 	if(authType==0)
 		{
-		
+	/*		if(DEBUG)
+	{
+		Serial.print("ID received (inside authType condition 1:");
+		Serial.println(serialInputNumber,DEC);
+	}*/
 		displayMessage("Please Wait...");
 		unsigned short retCode=0;
 		
@@ -251,11 +266,21 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		// 0x30 0x31 - Check Fingerprint
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x31;
-		for(unsigned short i=0;i<16;i++)
+		if(DEBUG)
+	{
+		Serial.print("ID received (before data written to 0):");
+		Serial.println(serialInputNumber,DEC);
+	}
+		for(unsigned short i=0;i<12;i++)
 			commandToSlaveUnion.data[i]=0;
-		longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
+		//longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
 		writeToSlave();
 		delay(100);
+		/*if(DEBUG)
+	{
+		Serial.print("ID received (betw write and read:");
+		Serial.println(serialInputNumber,DEC);
+	}*/
 		retCode=readFromSlave();
 		if(retCode==-1)
 			//No valid response - No fingerprint found
@@ -269,11 +294,16 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 			////displayMessage(1);
 			return -1;
 			}
+	/*		if(DEBUG)
+	{
+		Serial.print("ID received (inside authType condition 1:");
+		Serial.println(serialInputNumber,DEC);
+	}*/
 		//0x30 0x32 - Enroll Fingerprint1
 		displayMessage("Press Finger!");
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x32;
-		for(unsigned short i=0;i<16;i++)
+		for(unsigned short i=0;i<12;i++)
 			commandToSlaveUnion.data[i]=0;
 		writeToSlave();
 		readFromSlave();
@@ -289,11 +319,16 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 			////displayMessage(3);
 			return -1;
 			}
+		/*if(DEBUG)
+	{
+		Serial.print("ID received (inside authType condition 1:");
+		Serial.println(serialInputNumber,DEC);
+	}*/
 		//0x30 0x33 - Enroll Fingerprint2
 		displayMessage2("Press Finger","Again!");
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x33;
-		for(unsigned short i=0;i<16;i++)
+		for(unsigned short i=0;i<12;i++)
 			commandToSlaveUnion.data[i]=0;
 		writeToSlave();
 		readFromSlave();
@@ -309,13 +344,23 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 			////displayMessage(5);
 			return -1;
 			}
+		/*if(DEBUG)
+	{
+		Serial.print("ID received (inside authType condition 1:");
+		Serial.println(serialInputNumber,DEC);
+	}*/
 		//0x30 0x34 - STORE Fingerprint
 		displayMessage("Enrolling...");
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x34;
-		for(unsigned short i=0;i<16;i++)
-			commandToSlaveUnion.data[i]=0;
-		writeToSlave();
+	/*		if(DEBUG)
+	{
+		Serial.print("SerialInputNumber before longToByte:");
+		Serial.println(serialInputNumber,DEC);
+	}*/
+	
+		longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
+			writeToSlave();
 		readFromSlave();
 		if(retCode==-1)
 			//No valid response - Enroll Failed. 
@@ -430,9 +475,11 @@ void infoLog()
 
 void receiveSerialInputNumber()
 {
+	
 //	if(DEBUG)
 //		Serial.println("receiveSerialInputNumber function called");
-    serialInputNumberReceived=false;
+    serialInputNumber=0;
+	serialInputNumberReceived=false;
     unsigned short count=0;
     char inchar[10]="";
     while (Serial.available()>0) 
@@ -449,6 +496,7 @@ void receiveSerialInputNumber()
 
 void poll()
 {
+	char tmpStr[4]="";
 	commandToSlaveUnion.command[0]=0x30;
 	commandToSlaveUnion.command[1]=0x38;
 	for(unsigned short i=0;i<12;i++)
@@ -457,6 +505,21 @@ void poll()
 	}
 	writeToSlave();	
 	readFromSlave();
+	switch(responseFromSlaveUnion.responseCode[1])
+		{
+			case 0x44://Fingerprint match found.
+					  sprintf(tmpStr,"%d",responseFromSlaveUnion.data[0]);
+					  displayMessage2("Welcome!",tmpStr);
+					  delay(2000);
+					  break;
+			case 0x45://Fingerprint detected. No match found.
+					  displayMessage("Invalid FP!!!");
+					  delay(2000);
+					  break;
+			default: //No Finger or RFID detected
+					  break;
+		}
+					 
 }
 
 

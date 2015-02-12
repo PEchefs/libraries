@@ -2,11 +2,11 @@
 
 #define DEBUG 1
 unsigned short currentMenu=0;
-unsigned short prevMenu=0;
+unsigned short prevMenu=0,prevMenu1=0;
 unsigned short displayStartIndex=0;
-unsigned short prevDisplayStartIndex=0;
+unsigned short prevDisplayStartIndex=0, prevDisplayStartIndex1=0;
 int currentMenuIndex=0;
-unsigned short prevMenuIndex=0;
+unsigned short prevMenuIndex=0, prevMenuIndex1=0;
 unsigned short MenuFunctionToCallIndex=0;
 state previousState=NONE;
 state currentState=HOMESCREEN;
@@ -23,12 +23,25 @@ const char *WeekDay[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 uint8_t menu_redraw_required = 0;
 void escMenuList()
 {
-   currentMenu=prevMenu;
-   prevMenu=0;
-   displayStartIndex=prevDisplayStartIndex;
-   prevDisplayStartIndex=0;
-   currentMenuIndex=prevMenuIndex;
-   prevMenuIndex=0;
+	if(currentMenu==0)
+		{
+			updateState(HOMESCREEN);
+			displayStartIndex=0;
+			currentMenuIndex=0;
+		}
+			
+	else
+	{
+		currentMenu=prevMenu;
+		prevMenu=prevMenu1;
+		prevMenu1=0;
+		displayStartIndex=prevDisplayStartIndex;
+		prevDisplayStartIndex=prevDisplayStartIndex1;
+		prevDisplayStartIndex1=0;
+		currentMenuIndex=prevMenuIndex;
+		prevMenuIndex=prevMenuIndex1;
+		prevMenuIndex1=0;
+	}
 }
 
 void updateState(state stateToUpdateTo)
@@ -44,12 +57,15 @@ void enterMenuItem(menu_st currentMenuList)
    if(currentMenuList.nextLevelMenuIndex[currentMenuIndex] != 255)
    {
      //next level submenu exists
+	 prevMenu1=prevMenu;
      prevMenu=currentMenu;
      currentMenu=currentMenuList.nextLevelMenuIndex[currentMenuIndex];
    
+	 prevDisplayStartIndex1=prevDisplayStartIndex;
      prevDisplayStartIndex=displayStartIndex;
      displayStartIndex=0;
-
+	 
+	 prevMenuIndex1=prevMenuIndex;
      prevMenuIndex=currentMenuIndex;
      currentMenuIndex=0;
    }
