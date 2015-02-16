@@ -121,6 +121,10 @@ unsigned short readFromSlave()
   do
   {
 	j++;
+	responseFromSlaveUnion.responseCode[0]=0;
+	responseFromSlaveUnion.responseCode[1]=0;
+	
+	Serial.println("Requesting response from Slave");
 	Wire.requestFrom(SLAVEADDRESS, 16);    // request 16 bytes from slave device #2
  // if(DEBUG)
 //	Serial.println("Request for 16 bytes sent to Slave");
@@ -151,17 +155,25 @@ unsigned short readFromSlave()
 
 	
 
-	while (Wire.available())   // slave may send less than requested
+	//while (Wire.available())   // slave may send less than requested
+	for(i=0;i<16;i++)
 	{
-		
 		responseFromSlaveUnion.responseFromSlave[i]=Wire.read();
 //		Serial.print(responseFromSlaveUnion.responseFromSlave[i]);
  	//   char c = Wire.read(); // receive a byte as character
  	//   Serial.print(c);         // print the character
-		i++;
+		//i++;
+	}
+	while (Wire.available())
+	{
+		Wire.read(); //Flush any unwanted wire bytes received.
 	}
 	if(responseFromSlaveUnion.responseCode[0]==0x40 && responseFromSlaveUnion.responseCode[1]!=0x46)
 			validResponseReceived=true;
+	else if(responseFromSlaveUnion.responseCode[0]==0x40 && responseFromSlaveUnion.responseCode[1]==0x46)
+			delay(500);
+	Serial.print("responseFromSlaveUnion.responseCode[0]: ");Serial.print(responseFromSlaveUnion.responseCode[0],DEC);
+	Serial.print("responseFromSlaveUnion.responseCode[1]: ");Serial.print(responseFromSlaveUnion.responseCode[1],DEC);
 /*	if(i==0)
 		if(DEBUG)
 			Serial.println("Failed Enroll! No response received");
@@ -171,7 +183,7 @@ unsigned short readFromSlave()
 			Serial.println("Failed Enroll! 16 bytes not received");
 		//TODO : Add LCD call to display failure
 		*/
-	delay(100);
+	delay(200);
 	}
   while((j<20) && !validResponseReceived);
   if(!validResponseReceived)
