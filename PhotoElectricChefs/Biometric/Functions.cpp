@@ -61,6 +61,7 @@ Response Codes:
 #include <Arduino.h>
 #include <Functions.h>
 #include <Wire.h>
+#include <Wifi.h>
 #define DEBUG 0
 #define DEBUG1 1
 #define DEBUGWOWIRE 0
@@ -123,8 +124,8 @@ unsigned short readFromSlave()
 	j++;
 	responseFromSlaveUnion.responseCode[0]=0;
 	responseFromSlaveUnion.responseCode[1]=0;
-	
-	Serial.println("Requesting response from Slave");
+	if(DEBUG)
+		Serial.println("Requesting response from Slave");
 	Wire.requestFrom(SLAVEADDRESS, 16);    // request 16 bytes from slave device #2
  // if(DEBUG)
 //	Serial.println("Request for 16 bytes sent to Slave");
@@ -172,8 +173,11 @@ unsigned short readFromSlave()
 			validResponseReceived=true;
 	else if(responseFromSlaveUnion.responseCode[0]==0x40 && responseFromSlaveUnion.responseCode[1]==0x46)
 			delay(500);
-	Serial.print("responseFromSlaveUnion.responseCode[0]: ");Serial.print(responseFromSlaveUnion.responseCode[0],DEC);
-	Serial.print("responseFromSlaveUnion.responseCode[1]: ");Serial.print(responseFromSlaveUnion.responseCode[1],DEC);
+	if(DEBUG)
+	{
+		Serial.print("responseFromSlaveUnion.responseCode[0]: ");Serial.print(responseFromSlaveUnion.responseCode[0],DEC);
+		Serial.print("responseFromSlaveUnion.responseCode[1]: ");Serial.print(responseFromSlaveUnion.responseCode[1],DEC);
+	}
 /*	if(i==0)
 		if(DEBUG)
 			Serial.println("Failed Enroll! No response received");
@@ -529,7 +533,11 @@ void poll()
 					  delay(2000);
 					  break;
 			case 0x47://RFID detected. TODO: Validate the RFID in the DB to check if a valid user is associated with this RFID
-					  displayMessage2("Welcome",responseFromSlaveUnion.data);
+					  sprintf(tmpStr,"%c%c%c%c%c%c%c%c%c%c%c%c",responseFromSlaveUnion.data[0],responseFromSlaveUnion.data[1],responseFromSlaveUnion.data[2],
+					  responseFromSlaveUnion.data[3],responseFromSlaveUnion.data[4],responseFromSlaveUnion.data[5],responseFromSlaveUnion.data[6],responseFromSlaveUnion.data[7],
+					  responseFromSlaveUnion.data[8],responseFromSlaveUnion.data[9],responseFromSlaveUnion.data[10],responseFromSlaveUnion.data[11]);
+					  displayMessage2("Welcome",tmpStr);
+					  delay(2000);
 					  break;
 			default: //No Finger or RFID detected
 					  break;
@@ -539,7 +547,8 @@ void poll()
 
 void updateDB()
 {
-	
+	//Serial.println("Entered Update DB");
+	wifi_GetEmployee(1);
 }
 
 

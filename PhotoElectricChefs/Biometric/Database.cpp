@@ -62,6 +62,7 @@ union
 	   }log;
 	    byte data[LOG_DATA_LENGTH];
 	} logStats;
+
 char database_isFormatted()
 {
 	byte status = i2c_eeprom_read_byte(0);
@@ -141,13 +142,13 @@ int database_getemployee_byfid(int fid,byte *emp_data)
 	{
 		int employee_start_addr=USER_DATA_START_ADDR+(j*USER_DATA_LENGTH);
 		int temp_fid=i2c_eeprom_read_byte(employee_start_addr+45);
-		delay(10);
+		delay(1);
 		if(temp_fid==fid)
 		{
 			for(int i=0;i<USER_DATA_LENGTH;i++)
 			{
 				emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
-				delay(10);
+				delay(2);
 			}
 			return 1;
 		}
@@ -164,7 +165,7 @@ int database_getemployee_byrfid(char rfid[12],byte *emp_data)
 		for(int i=13;i<25;i++)
 		{
 			temp_rfid[i-13]=i2c_eeprom_read_byte(employee_start_addr+i);
-			delay(10);
+			delay(1);
 		}
 		for(int i=0;i<12;i++)
 		{
@@ -181,7 +182,7 @@ int database_getemployee_byrfid(char rfid[12],byte *emp_data)
 			for(int i=0;i<USER_DATA_LENGTH;i++)
 			{
 				emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
-				delay(10);
+				delay(2);
 			}
 			return 1;
 		}
