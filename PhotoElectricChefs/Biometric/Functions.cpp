@@ -528,6 +528,9 @@ void poll()
 					  displayMessage("Invalid FP!!!");
 					  delay(2000);
 					  break;
+			case 0x47://RFID detected. TODO: Validate the RFID in the DB to check if a valid user is associated with this RFID
+					  displayMessage2("Welcome",responseFromSlaveUnion.data);
+					  break;
 			default: //No Finger or RFID detected
 					  break;
 		}
