@@ -137,4 +137,7 @@ void infoLog();
 void receiveSerialInputNumber();
 
 void poll();
+
+void updateDB();
+
 #endif
