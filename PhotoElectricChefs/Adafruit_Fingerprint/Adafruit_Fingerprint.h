@@ -70,7 +70,7 @@
 
 //#define FINGERPRINT_DEBUG 
 
-#define DEFAULTTIMEOUT 5000  // milliseconds
+#define DEFAULTTIMEOUT 1000  // milliseconds
 
 
 class Adafruit_Fingerprint {
