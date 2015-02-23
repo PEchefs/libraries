@@ -62,6 +62,7 @@ Response Codes:
 #include <Functions.h>
 #include <Wire.h>
 #include <Wifi.h>
+#include "Database.h";
 #define DEBUG 0
 #define DEBUG1 1
 #define DEBUGWOWIRE 0
@@ -525,6 +526,9 @@ void poll()
 		{
 			case 0x44://Fingerprint match found.
 					  sprintf(tmpStr,"%d",responseFromSlaveUnion.data[0]);
+					  database_getemployee_byfid(responseFromSlaveUnion.data[0],employeeStats.data);
+					  for(int i=0;i<USER_DATA_LENGTH;i++)
+						Serial.print(employeeStats.data[i]);
 					  displayMessage2("Welcome!",tmpStr);
 					  delay(2000);
 					  break;
@@ -548,7 +552,19 @@ void poll()
 void updateDB()
 {
 	//Serial.println("Entered Update DB");
-	wifi_GetEmployee(1);
+	//wifi_GetEmployee(1);
+	byte temp[60]={0};
+	//wifi_sendLog(305419896,temp);
+	for(int j=1;j<2;j++)
+	{
+		if(!wifi_GetEmployee(j,temp))
+			return;
+		if(database_setemployee(temp))
+			Serial.println("Data written");
+		//for(int i=0;i<60;i++)
+			//Serial.println(temp[i],DEC);
+	}
+		
 }
 
 

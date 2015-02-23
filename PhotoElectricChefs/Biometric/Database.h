@@ -9,8 +9,47 @@ External EEPROM DATABASE FOR USER AND LOG
 #define MAX_LOGS  10000
 #define USER_DATA_LENGTH 60
 #define LOG_DATA_LENGTH 21
-#define USER_DATA_START_ADDR 100
+#define USER_DATA_START_ADDR 5000
 #define LOG_DATA_START_ADDR  70000
+ union
+	{    
+	   struct eepromStruct
+	   {
+		byte isFormatted;
+		unsigned int  userCount;
+		unsigned int  logCount;
+	   }eeprom;
+	   byte  data[5];
+	} eepromStats;
+
+union
+	{    
+	   struct employeeStruct
+	   {
+		int empSlNo;
+		char empId[12];
+		char empRfid[12];
+		char empName[20];
+		int  empFid;
+		char empEntryType;
+		long empInTime;
+		long empOutTime;
+		char empMode;
+		char reserved[2];
+	   }employee;
+	    byte data[USER_DATA_LENGTH];
+	} employeeStats;
+union
+	{    
+	   struct logStruct
+	   {
+		long logSlNo;
+		char empId[12];
+		char empMode;
+		long logTime;
+	   }log;
+	    byte data[LOG_DATA_LENGTH];
+	} logStats;
 
 char database_isFormatted(void);
 char database_Format(void);

@@ -23,45 +23,6 @@
 					- LogTime - 4 bytes unixtime referring to log entry time
  */
  /*****************************************************/
- union
-	{    
-	   struct eepromStruct
-	   {
-		byte isFormatted;
-		unsigned int  userCount;
-		unsigned int  logCount;
-	   }eeprom;
-	   byte  data[5];
-	} eepromStats;
-
-union
-	{    
-	   struct employeeStruct
-	   {
-		int empSlNo;
-		char empId[12];
-		char empRfid[12];
-		char empName[20];
-		int  empFid;
-		char empEntryType;
-		long empInTime;
-		long empOutTime;
-		char empMode;
-		char reserved[2];
-	   }employee;
-	    byte data[USER_DATA_LENGTH];
-	} employeeStats;
-union
-	{    
-	   struct logStruct
-	   {
-		long logSlNo;
-		char empId[12];
-		char empMode;
-		long logTime;
-	   }log;
-	    byte data[LOG_DATA_LENGTH];
-	} logStats;
 
 char database_isFormatted()
 {
@@ -124,6 +85,20 @@ int database_setemployee(byte *temp)
 		if(temp[i]!=temp2[i])
 			return 0;
 	}
+	delay(1000);
+	Serial.println(employeeStats.employee.empSlNo);
+	delay(10);
+	Serial.println(employeeStats.employee.empName);
+		delay(10);
+
+	Serial.println(employeeStats.employee.empRfid);
+		delay(10);
+
+	Serial.println(employeeStats.employee.empFid);
+		delay(10);
+
+	Serial.println(employeeStats.employee.empId);
+	delay(1000);
 	return 1;
 	
 }
@@ -145,6 +120,10 @@ int database_getemployee_byfid(int fid,byte *emp_data)
 		delay(1);
 		if(temp_fid==fid)
 		{
+			Serial.print("Found! ");
+			Serial.print(temp_fid,DEC);
+			Serial.print("Matching ");
+			Serial.print(fid,DEC);
 			for(int i=0;i<USER_DATA_LENGTH;i++)
 			{
 				emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
