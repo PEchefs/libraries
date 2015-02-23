@@ -277,8 +277,8 @@ void displayMessage(char *message)
 
 void displayMessage2(char *message1, char *message2)
 {
-	if(DEBUG)
-		Serial.println("Display Message function called");
+	//if(DEBUG)
+		//Serial.println("Display Message function called");
 	uint8_t i,count, h;
 	u8g_uint_t w, d;
 

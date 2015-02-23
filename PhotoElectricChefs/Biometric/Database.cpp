@@ -56,13 +56,13 @@ void database_getstats()
 		eepromStats.data[i]=i2c_eeprom_read_byte(i);
 		delay(50);
 	}
-	Serial.print("Formatted : ");
+	//Serial.print("Formatted : ");
 	if(eepromStats.eeprom.isFormatted==0xAA)
 		Serial.println("Yes");
 	else
 		Serial.println("No");
-	Serial.print("User Count : ");Serial.println(eepromStats.eeprom.userCount);
-	Serial.print("Log Count : ");Serial.println(eepromStats.eeprom.logCount);
+	//Serial.print("User Count : ");Serial.println(eepromStats.eeprom.userCount);
+	//Serial.print("Log Count : ");Serial.println(eepromStats.eeprom.logCount);
 }
 int database_setemployee(byte *temp)
 {
@@ -120,9 +120,9 @@ int database_getemployee_byfid(int fid,byte *emp_data)
 		delay(1);
 		if(temp_fid==fid)
 		{
-			Serial.print("Found! ");
+		//	Serial.print("Found! ");
 			Serial.print(temp_fid,DEC);
-			Serial.print("Matching ");
+		//	Serial.print("Matching ");
 			Serial.print(fid,DEC);
 			for(int i=0;i<USER_DATA_LENGTH;i++)
 			{

@@ -140,4 +140,6 @@ void poll();
 
 void updateDB();
 
+char checkKeyPress(void);
+
 #endif

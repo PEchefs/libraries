@@ -40,8 +40,8 @@ Command To Slave:
 0x32 0x36 - Close Door
 0x32 0x37 - Trigger Buzzer
 0x32 0x38 - Poll
-0x32 0x39
-0x32 0x3A
+0x32 0x39 - Check Key Press
+0x32 0x3A - 
 
 Response Codes:
 0x40 0x40 - Success - for enroll, delete
@@ -53,7 +53,8 @@ Response Codes:
 0x40 0x46 - Wait, Under processing
 0x40 0x47 - RFID flashed - for Poll
 0x40 0x48 - No FP or RFID detected
-0x40 0x49
+0x40 0x49 - Key pressed
+0x40 0x4A - No Key pressed
 
 
 
@@ -283,11 +284,6 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		// 0x30 0x31 - Check Fingerprint
 		commandToSlaveUnion.command[0]=0x30;
 		commandToSlaveUnion.command[1]=0x31;
-		if(DEBUG)
-	{
-		Serial.print("ID received (before data written to 0):");
-		Serial.println(serialInputNumber,DEC);
-	}
 		for(unsigned short i=0;i<12;i++)
 			commandToSlaveUnion.data[i]=0;
 		//longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
@@ -561,11 +557,33 @@ void updateDB()
 			return;
 		if(database_setemployee(temp))
 			Serial.println("Data written");
-		//for(int i=0;i<60;i++)
-			//Serial.println(temp[i],DEC);
+		for(int i=0;i<60;i++)
+			Serial.println(temp[i],DEC);
 	}
 		
 }
+
+char checkKeyPress()
+{
+	// Check Key Press - 0x32 0x39
+		commandToSlaveUnion.command[0]=0x32;
+		commandToSlaveUnion.command[1]=0x39;
+		for(unsigned short i=0;i<12;i++)
+			commandToSlaveUnion.data[i]=0;
+		writeToSlave();
+		readFromSlave();
+		if(responseFromSlaveUnion.responseCode[1]==0x4A)
+			// No key pressed
+			return 'F'; //Failure
+		
+		else if(responseFromSlaveUnion.responseCode[1]==0x49)
+			// Key pressedreturn
+			return (char)responseFromSlaveUnion.data[0];
+		else
+			return 'F';
+}
+
+
 
 
 
