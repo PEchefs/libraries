@@ -527,9 +527,18 @@ void poll()
 					  sprintf(tmpStr,"%d",responseFromSlaveUnion.data[0]);
 					  database_getemployee_byfid(responseFromSlaveUnion.data[0],employeeStats.data);
 					  for(int i=0;i<USER_DATA_LENGTH;i++)
-						Serial.print(employeeStats.data[i]);
+						Serial.print(employeeStats.data[i]);					
 					  displayMessage2("Welcome!",tmpStr);
+					  buzzerCommandToSlave();
+					  openDoorCommandToSlave(0);
+					  openDoorCommandToSlave(1);
+					  openDoorCommandToSlave(2);
+					  openDoorCommandToSlave(3);
 					  delay(2000);
+					  closeDoorCommandToSlave(0);
+					  closeDoorCommandToSlave(1);
+					  closeDoorCommandToSlave(2);
+					  closeDoorCommandToSlave(3);
 					  break;
 			case 0x45://Fingerprint detected. No match found.
 					  displayMessage("Invalid FP!!!");
@@ -540,7 +549,16 @@ void poll()
 					  responseFromSlaveUnion.data[3],responseFromSlaveUnion.data[4],responseFromSlaveUnion.data[5],responseFromSlaveUnion.data[6],responseFromSlaveUnion.data[7],
 					  responseFromSlaveUnion.data[8],responseFromSlaveUnion.data[9],responseFromSlaveUnion.data[10],responseFromSlaveUnion.data[11]);
 					  displayMessage2("Welcome",tmpStr);
+					  buzzerCommandToSlave();
+					  openDoorCommandToSlave(0);
+					  openDoorCommandToSlave(1);
+					  openDoorCommandToSlave(2);
+					  openDoorCommandToSlave(3);
 					  delay(2000);
+					  closeDoorCommandToSlave(0);
+					  closeDoorCommandToSlave(1);
+					  closeDoorCommandToSlave(2);
+					  closeDoorCommandToSlave(3);					  
 					  break;
 			default: //No Finger or RFID detected
 					  break;
@@ -585,9 +603,38 @@ char checkKeyPress()
 		else
 			return 'F';
 }
+//0x32 0x35 - Open Door
+//0x32 0x36 - Close Door
+//0x32 0x37 - Trigger Buzzer
+void openDoorCommandToSlave(unsigned short doorIndex)
+{
+		commandToSlaveUnion.command[0]=0x32;
+		commandToSlaveUnion.command[1]=0x35;
+		commandToSlaveUnion.data[0]=doorIndex;
+		for(unsigned short i=1;i<12;i++)
+			commandToSlaveUnion.data[i]=0;
+		writeToSlave();
+		//readFromSlave();
+}
 
+void closeDoorCommandToSlave(unsigned short doorIndex)
+{
+		commandToSlaveUnion.command[0]=0x32;
+		commandToSlaveUnion.command[1]=0x36;
+		commandToSlaveUnion.data[0]=doorIndex;
+		for(unsigned short i=1;i<12;i++)
+			commandToSlaveUnion.data[i]=0;
+		writeToSlave();
+		//readFromSlave();
+}
 
+void buzzerCommandToSlave()
+{
+		commandToSlaveUnion.command[0]=0x32;
+		commandToSlaveUnion.command[1]=0x37;
+		for(unsigned short i=0;i<12;i++)
+			commandToSlaveUnion.data[i]=0;
+		writeToSlave();
+		//readFromSlave();
+}
 
-
-
-  

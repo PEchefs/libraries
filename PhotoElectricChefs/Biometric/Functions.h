@@ -142,4 +142,10 @@ void updateDB();
 
 char checkKeyPress(void);
 
+void openDoorCommandToSlave(unsigned short);
+
+void closeDoorCommandToSlave(unsigned short);
+
+void buzzerCommandToSlave();
+
 #endif
