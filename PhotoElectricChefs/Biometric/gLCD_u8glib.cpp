@@ -46,6 +46,10 @@ void escMenuList()
 
 void updateState(state stateToUpdateTo)
 {
+  if(stateToUpdateTo==HOMESCREEN)
+  {
+	  prevMenuIndex=prevMenuIndex1=currentMenuIndex=displayStartIndex=prevDisplayStartIndex=prevDisplayStartIndex1=currentMenu=prevMenu=prevMenu1=0;
+  }
   previousState=currentState;
   currentState=stateToUpdateTo;
 }

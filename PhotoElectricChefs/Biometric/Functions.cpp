@@ -143,7 +143,8 @@ unsigned short readFromSlave()
 		}
 	if(DEBUG)
 		Serial.println("Waiting for response from slave");
-		delay(100);
+		//delay(100);
+		delay(10);
 	time2=millis();
 	if(time2-time1>10000)
 		{
@@ -174,7 +175,8 @@ unsigned short readFromSlave()
 	if(responseFromSlaveUnion.responseCode[0]==0x40 && responseFromSlaveUnion.responseCode[1]!=0x46)
 			validResponseReceived=true;
 	else if(responseFromSlaveUnion.responseCode[0]==0x40 && responseFromSlaveUnion.responseCode[1]==0x46)
-			delay(500);
+			//delay(500);
+			delay(50);
 	if(DEBUG)
 	{
 		Serial.print("responseFromSlaveUnion.responseCode[0]: ");Serial.print(responseFromSlaveUnion.responseCode[0],DEC);
@@ -189,7 +191,8 @@ unsigned short readFromSlave()
 			Serial.println("Failed Enroll! 16 bytes not received");
 		//TODO : Add LCD call to display failure
 		*/
-	delay(200);
+	//delay(200);
+	delay(20);
 	}
   while((j<20) && !validResponseReceived);
   if(!validResponseReceived)
@@ -212,7 +215,7 @@ void writeToSlave()
 //	Serial.write(commandToSlaveUnion.commandToSlave,16);
     Wire.write(commandToSlaveUnion.commandToSlave,16);        // sends 16 bytes
 	Wire.endTransmission();    // stop transmitting
-  delay(500);
+  delay(10);
   }
 }
 

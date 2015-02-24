@@ -9,7 +9,7 @@ int getMenu(int id)
 	for(int i=0;i<MENU_DATA_LENGTH;i++)
 	{
 		Menu.data[i]=i2c_eeprom_read_byte(menu_start_addr+i);
-		delay(2);
+		//delay(2);
 	}
 }
 int setMenu(int id)
