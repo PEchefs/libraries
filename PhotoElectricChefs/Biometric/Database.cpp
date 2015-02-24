@@ -57,10 +57,10 @@ void database_getstats()
 		delay(50);
 	}
 	//Serial.print("Formatted : ");
-	if(eepromStats.eeprom.isFormatted==0xAA)
-		Serial.println("Yes");
-	else
-		Serial.println("No");
+	//if(eepromStats.eeprom.isFormatted==0xAA)
+		//Serial.println("Yes");
+	//else
+		//Serial.println("No");
 	//Serial.print("User Count : ");Serial.println(eepromStats.eeprom.userCount);
 	//Serial.print("Log Count : ");Serial.println(eepromStats.eeprom.logCount);
 }

@@ -570,16 +570,24 @@ void updateDB()
 {
 	//Serial.println("Entered Update DB");
 	//wifi_GetEmployee(1);
-	byte temp[60]={0};
+	byte db_temp[60]={0},temp2=0;
 	//wifi_sendLog(305419896,temp);
-	for(int j=1;j<2;j++)
+	for(int j=1;j<50;j++)
 	{
-		if(!wifi_GetEmployee(j,temp))
+		if(!wifi_GetEmployee(j,db_temp))
 			return;
-		if(database_setemployee(temp))
+		temp2=db_temp[0];
+		db_temp[0]=db_temp[1];
+		db_temp[1]=temp2;
+		
+		temp2=db_temp[46];
+		db_temp[46]=db_temp[47];
+		db_temp[47]=temp2;
+		if(database_setemployee(db_temp))
 			Serial.println("Data written");
 		for(int i=0;i<60;i++)
-			Serial.println(temp[i],DEC);
+			Serial.println(db_temp[i],DEC);
+		delay(1000);
 	}
 		
 }

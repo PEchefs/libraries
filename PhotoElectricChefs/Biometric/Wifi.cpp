@@ -73,7 +73,7 @@ bool wifi_GetEmployee(int sl_no,byte* resp)
 		 for(int i=0;i<100;i++)
 			mySerial.write(temp[i]);
 		while(!mySerial.available());
-		int i=1;
+		int i=0;
 		while(i<60)
 			if(mySerial.available())
 				resp[i++]=mySerial.read();
