@@ -248,8 +248,9 @@ uint8_t uploadFingerpintTemplate(uint8_t id)
 
 uint8_t getFingerprintEnroll1() {
   uint8_t p = -1;
+  unsigned long fingerTimeOut=millis();
   Serial.println("Waiting for valid finger to enroll");
-  while (p != FINGERPRINT_OK) {
+  while (p != FINGERPRINT_OK && millis()-fingerTimeOut<10000) {
     p = finger.getImage();
     switch (p) {
     case FINGERPRINT_OK:
@@ -269,6 +270,8 @@ uint8_t getFingerprintEnroll1() {
       break;
     }
   }
+  if(p != FINGERPRINT_OK)
+	  return p;
 
   // OK success!
 
@@ -303,9 +306,9 @@ uint8_t getFingerprintEnroll1() {
 }
 uint8_t getFingerprintEnroll2() {
   uint8_t p = -1;
-
+  unsigned long fingerTimeOut=millis();
   Serial.println("Place same finger again");
-  while (p != FINGERPRINT_OK) {
+  while (p != FINGERPRINT_OK && millis()-fingerTimeOut<10000) {
     p = finger.getImage();
     switch (p) {
     case FINGERPRINT_OK:
@@ -325,6 +328,9 @@ uint8_t getFingerprintEnroll2() {
       break;
     }
   }
+  
+  if(p != FINGERPRINT_OK)
+	  return p;
 
   // OK success!
 
@@ -332,7 +338,8 @@ uint8_t getFingerprintEnroll2() {
   switch (p) {
     case FINGERPRINT_OK:
       Serial.println("Image converted");
-      break;
+      //break;
+	  return p;
     case FINGERPRINT_IMAGEMESS:
       Serial.println("Image too messy");
       return p;
@@ -349,6 +356,7 @@ uint8_t getFingerprintEnroll2() {
       Serial.println("Unknown error");
       return p;
   }
+  
 }
 uint8_t storeFingerprint(uint8_t id) { 
   uint8_t p = -1;
@@ -369,6 +377,7 @@ uint8_t storeFingerprint(uint8_t id) {
   p = finger.storeModel(id);
   if (p == FINGERPRINT_OK) {
     Serial.println("Stored!");
+	return p;
   } else if (p == FINGERPRINT_PACKETRECIEVEERR) {
     Serial.println("Communication error");
     return p;

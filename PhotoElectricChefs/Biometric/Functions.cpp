@@ -45,7 +45,7 @@ Command To Slave:
 
 Response Codes:
 0x40 0x40 - Success - for enroll, delete
-0x40 0x41 - Failed, User FP exits
+0x40 0x41 - No Fingerprint Found for Enroll	/ Fingerprint sensor not found							//Failed, User FP exits
 0x40 0x42 - Failed, User RFID exists
 0x40 0x43 - Failed, User Does not exist
 0x40 0x44 - Fingerprint match - for Poll
@@ -72,7 +72,8 @@ unsigned long serialInputNumber;
 boolean  serialInputNumberReceived=false;
 boolean enrollComplete=false;
 
-
+char enrollFail[]="Enroll Failed!";
+char retry[]="Please retry!";
 
 
 void longTobyteArray(unsigned long longToConvert, byte *byteArray)
@@ -194,9 +195,9 @@ unsigned short readFromSlave()
 	//delay(200);
 	delay(20);
 	}
-  while((j<20) && !validResponseReceived);
-  if(!validResponseReceived)
-	return -1;
+  while((j<200) && !validResponseReceived);
+  if(!validResponseReceived || responseFromSlaveUnion.responseCode[1]==0x41 || responseFromSlaveUnion.responseCode[1]==0x42 || responseFromSlaveUnion.responseCode[1]==0x43)
+	return 0;
 	
   return 1;
   }
@@ -298,18 +299,20 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		Serial.println(serialInputNumber,DEC);
 	}*/
 		retCode=readFromSlave();
-		if(retCode==-1)
+		if(retCode==0)
 			//No valid response - No fingerprint found
 			{
-			//displayMessage(0);
+			displayMessage2(enrollFail,retry);
+			delay(2500);
 			return -1;
 			}
-		else if(retCode==0)
+	/*	else if(retCode==0)
 			// Timeout - No fingerprint found
 			{
 			////displayMessage(1);
+			displayMessage2(enrollFail,retry);
 			return -1;
-			}
+			}*/
 	/*		if(DEBUG)
 	{
 		Serial.print("ID received (inside authType condition 1:");
@@ -322,19 +325,21 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		for(unsigned short i=0;i<12;i++)
 			commandToSlaveUnion.data[i]=0;
 		writeToSlave();
-		readFromSlave();
-		if(retCode==-1)
+		retCode=readFromSlave();
+		if(retCode==0)
 			//No valid response - Finger not pressed
 			{
 			////displayMessage(2);
+			displayMessage2(enrollFail,retry);
+			delay(2500);
 			return -1;
 			}
-		else if(retCode==0)
+	/*	else if(retCode==0)
 			// Timeout - Finger not pressed
 			{
 			////displayMessage(3);
 			return -1;
-			}
+			}*/
 		/*if(DEBUG)
 	{
 		Serial.print("ID received (inside authType condition 1:");
@@ -347,19 +352,21 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 		for(unsigned short i=0;i<12;i++)
 			commandToSlaveUnion.data[i]=0;
 		writeToSlave();
-		readFromSlave();
-		if(retCode==-1)
+		retCode=readFromSlave();
+		if(retCode==0)
 			//No valid response - Fingerprints do not match
 			{
 			////displayMessage(4);
+			displayMessage2(enrollFail,retry);
+			delay(2500);
 			return -1;
 			}
-		else if(retCode==0)
+		/*else if(retCode==0)
 			// Timeout - Finger not pressed
 			{
 			////displayMessage(5);
 			return -1;
-			}
+			}*/
 		/*if(DEBUG)
 	{
 		Serial.print("ID received (inside authType condition 1:");
@@ -377,19 +384,21 @@ unsigned short enroll(unsigned short userType, unsigned short authType)
 	
 		longTobyteArray(serialInputNumber,commandToSlaveUnion.data);
 			writeToSlave();
-		readFromSlave();
-		if(retCode==-1)
+		retCode=readFromSlave();
+		if(retCode==0)
 			//No valid response - Enroll Failed. 
 			{
 			//////displayMessage(6);
+			displayMessage2(enrollFail,retry);
+			delay(2500);
 			return -1;
 			}
-		else if(retCode==0)
+		/*else if(retCode==0)
 			// Timeout - Could not enroll!. Unknown error.
 			{
 			////displayMessage(7);
 			return -1;		
-			}
+			}*/
 		}
 		
 	else if(authType==1)
@@ -506,8 +515,16 @@ void receiveSerialInputNumber()
         count++;  
 		serialInputNumberReceived=true;		
     }
+/*	while (mySerial.available()>0) 
+    {
+ //       if(DEBUG)
+ //         Serial.println("Serial Input Number received");
+        inchar[count]=char(mySerial.read());
+        count++;  
+		serialInputNumberReceived=true;		
+    }
     serialInputNumber=strtoul(inchar,NULL,0);
-
+*/
 }
 
 void poll()
