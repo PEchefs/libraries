@@ -9,6 +9,6 @@ WIFI
 bool wifi_Init();
 bool wifi_Poll();
 bool wifi_GetEmployee(int,byte*);
-bool wifi_sendLog(long,byte*);
+bool wifi_sendLog(byte*);
 bool wifi_sendtemplate(long ,byte*);
 #endif

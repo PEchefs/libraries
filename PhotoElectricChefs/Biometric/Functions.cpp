@@ -505,14 +505,11 @@ void receiveSerialInputNumber()
 //		Serial.println("receiveSerialInputNumber function called");
     serialInputNumber=0;
 	serialInputNumberReceived=false;
-    unsigned short count=0;
-    char inchar[10]="";
     while (Serial.available()>0) 
     {
  //       if(DEBUG)
- //         Serial.println("Serial Input Number received");
-        inchar[count]=char(Serial.read());
-        count++;  
+ //     Serial.println("Serial Input Number received");
+        serialInputNumber=(int)(Serial.read());
 		serialInputNumberReceived=true;		
     }
 /*	while (mySerial.available()>0) 
@@ -523,8 +520,9 @@ void receiveSerialInputNumber()
         count++;  
 		serialInputNumberReceived=true;		
     }
+
     serialInputNumber=strtoul(inchar,NULL,0);
-*/
+	*/
 }
 
 void poll()
@@ -538,14 +536,22 @@ void poll()
 	}
 	writeToSlave();	
 	readFromSlave();
+	//Serial.print("response from slave ");
+	//Serial.println(responseFromSlaveUnion.responseCode[1]);
 	switch(responseFromSlaveUnion.responseCode[1])
 		{
 			case 0x44://Fingerprint match found.
 					  sprintf(tmpStr,"%d",responseFromSlaveUnion.data[0]);
 					  database_getemployee_byfid(responseFromSlaveUnion.data[0],employeeStats.data);
-					  for(int i=0;i<USER_DATA_LENGTH;i++)
-						Serial.print(employeeStats.data[i]);					
-					  displayMessage2("Welcome!",tmpStr);
+					  //for(int i=0;i<USER_DATA_LENGTH;i++)
+						//Serial.print(employeeStats.data[i]);					
+					  displayMessage2("Welcome!",employeeStats.employee.empName);
+					  logStats.log.logSlNo=1;
+					  for(int i=0;i<12;i++)
+						logStats.log.empId[i]=employeeStats.employee.empId[i];
+                      logStats.log.empMode=1;
+					  logStats.log.logTime=1424504569; 
+					  wifi_sendLog(logStats.data);
 					  buzzerCommandToSlave();
 					  openDoorCommandToSlave(0);
 					  openDoorCommandToSlave(1);
@@ -562,10 +568,19 @@ void poll()
 					  delay(2000);
 					  break;
 			case 0x47://RFID detected. TODO: Validate the RFID in the DB to check if a valid user is associated with this RFID
-					  sprintf(tmpStr,"%c%c%c%c%c%c%c%c%c%c%c%c",responseFromSlaveUnion.data[0],responseFromSlaveUnion.data[1],responseFromSlaveUnion.data[2],
-					  responseFromSlaveUnion.data[3],responseFromSlaveUnion.data[4],responseFromSlaveUnion.data[5],responseFromSlaveUnion.data[6],responseFromSlaveUnion.data[7],
-					  responseFromSlaveUnion.data[8],responseFromSlaveUnion.data[9],responseFromSlaveUnion.data[10],responseFromSlaveUnion.data[11]);
-					  displayMessage2("Welcome",tmpStr);
+					  //sprintf(tmpStr,"%c%c%c%c%c%c%c%c%c%c%c%c",responseFromSlaveUnion.data[0],responseFromSlaveUnion.data[1],responseFromSlaveUnion.data[2],
+					  //responseFromSlaveUnion.data[3],responseFromSlaveUnion.data[4],responseFromSlaveUnion.data[5],responseFromSlaveUnion.data[6],responseFromSlaveUnion.data[7],
+					  //responseFromSlaveUnion.data[8],responseFromSlaveUnion.data[9],responseFromSlaveUnion.data[10],responseFromSlaveUnion.data[11]);
+					  database_getemployee_byrfid(responseFromSlaveUnion.data,employeeStats.data);
+					  //displayMessage2("Welcome",tmpStr);
+					  //for(int i=0;i<USER_DATA_LENGTH;i++)
+						//Serial.print(employeeStats.data[i]);
+					  displayMessage2("Welcome!",employeeStats.employee.empName);
+					  logStats.log.logSlNo=1;
+					  for(int i=0;i<12;i++)
+						logStats.log.empId[i]=employeeStats.employee.empId[i];                      logStats.log.empMode=1;
+					  logStats.log.logTime=1424504569; 
+					  wifi_sendLog(logStats.data);
 					  buzzerCommandToSlave();
 					  openDoorCommandToSlave(0);
 					  openDoorCommandToSlave(1);
@@ -602,8 +617,6 @@ void updateDB()
 		db_temp[47]=temp2;
 		if(database_setemployee(db_temp))
 			Serial.println("Data written");
-		for(int i=0;i<60;i++)
-			Serial.println(db_temp[i],DEC);
 		delay(1000);
 	}
 		

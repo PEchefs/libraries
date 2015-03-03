@@ -108,22 +108,26 @@ int database_getemployee(int slNo,byte *emp_data)
 	for(int i=0;i<USER_DATA_LENGTH;i++)
 	{
 		emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
-		delay(50);
+		delay(2);
 	}
 }
 int database_getemployee_byfid(int fid,byte *emp_data)
 {
+	int employee_start_addr=0;
 	for(int j=0;j<1000;j++)
 	{
-		int employee_start_addr=USER_DATA_START_ADDR+(j*USER_DATA_LENGTH);
-		int temp_fid=i2c_eeprom_read_byte(employee_start_addr+45);
+		employee_start_addr=USER_DATA_START_ADDR+(j*USER_DATA_LENGTH);
+		int temp_fid=i2c_eeprom_read_byte(employee_start_addr+46)+i2c_eeprom_read_byte(employee_start_addr+47)*256;
 		delay(1);
 		if(temp_fid==fid)
 		{
 		//	Serial.print("Found! ");
-			Serial.print(temp_fid,DEC);
+		//	Serial.println(USER_DATA_START_ADDR,DEC);
+		//	Serial.println(j,DEC);
+		//	Serial.println(USER_DATA_LENGTH,DEC);
+		//	Serial.println(employee_start_addr,DEC);
 		//	Serial.print("Matching ");
-			Serial.print(fid,DEC);
+		//	Serial.print(fid,DEC);
 			for(int i=0;i<USER_DATA_LENGTH;i++)
 			{
 				emp_data[i]=i2c_eeprom_read_byte(employee_start_addr+i);
@@ -134,17 +138,16 @@ int database_getemployee_byfid(int fid,byte *emp_data)
 	}
 	return 0;
 }
-int database_getemployee_byrfid(char rfid[12],byte *emp_data)
+int database_getemployee_byrfid(byte rfid[12],byte *emp_data)
 {
 	char found=0;
 	for(int j=0;j<1000;j++)
 	{
 		int employee_start_addr=USER_DATA_START_ADDR+(j*USER_DATA_LENGTH);
-		char temp_rfid[12];
+		byte temp_rfid[12];
 		for(int i=13;i<25;i++)
 		{
 			temp_rfid[i-13]=i2c_eeprom_read_byte(employee_start_addr+i);
-			delay(1);
 		}
 		for(int i=0;i<12;i++)
 		{

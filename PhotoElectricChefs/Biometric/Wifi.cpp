@@ -13,7 +13,7 @@ union {
 
 bool wifi_Init()
 {
-	  mySerial.begin(9600);
+	  mySerial.begin(4800);
 }
 
 bool wifi_Poll()
@@ -72,36 +72,25 @@ bool wifi_GetEmployee(int sl_no,byte* resp)
 		 temp[5]=emp_id.id_byte[1];
 		 for(int i=0;i<100;i++)
 			mySerial.write(temp[i]);
-		while(!mySerial.available());
 		int i=0;
-		while(i<60)
+		while(i<100)
 			if(mySerial.available())
-				resp[i++]=mySerial.read();
-		while(mySerial.available())mySerial.read();
+			{
+				if(i<60)
+					resp[i]=mySerial.read();
+				else
+					mySerial.read();
+				i++;
+			}
+		Serial.println(i);
 		if(resp[1]==0)
 			return false;
 		else 
 			return true;
 }
-bool wifi_sendLog(long sl_no,byte* resp)
+bool wifi_sendLog(byte* resp)
 {
-		 logStats.log.logSlNo=sl_no;
-		 logStats.log.empId[0]='A';
-		 logStats.log.empId[1]='B';
-		 logStats.log.empId[2]='C';
-		 logStats.log.empId[3]='-';
-		 logStats.log.empId[4]='1';
-		 logStats.log.empId[5]='2';
-		 logStats.log.empId[6]='3';
-		 logStats.log.empId[7]='4';
-		 logStats.log.empId[8]='5';
-		 logStats.log.empId[9]='6';
-		 logStats.log.empId[10]='D';
-		 logStats.log.empId[11]='E';
-
-		 logStats.log.empMode=1;
-		 logStats.log.logTime=1424504569;
-         byte temp[100]={0};
+		 byte temp[100]={0};
 		 temp[0]=0x50;
 		 temp[1]=0x51;
 		 temp[2]=0x31;
@@ -110,10 +99,11 @@ bool wifi_sendLog(long sl_no,byte* resp)
 			temp[i]=logStats.data[i-4];
 		 for(int i=0;i<100;i++)
 			mySerial.write(temp[i]);
-		while(!mySerial.available());
 		int i=0;
-		while(mySerial.available())
-			resp[i++]=mySerial.read();
+		while(i<10)
+			if(mySerial.available())
+				resp[i++]=mySerial.read();
+		Serial.println(i);
 }
 bool wifi_sendtemplate(long sl_no,byte* resp)
 {
